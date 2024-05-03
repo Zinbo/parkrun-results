@@ -310,4 +310,5 @@ export async function GET(request: Request) {
     // const results = await getAllDetails();
     // console.log(JSON.stringify(results));
     return Response.json(results);
+    // return Response.json({raceToDetails: {}, achievements: [{name: `${Math.random()}`, race: `${Math.random()}`, type: 'pb', runTime: `${Math.random()}`}]});
 }
