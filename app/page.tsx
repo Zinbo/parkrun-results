@@ -1,9 +1,7 @@
 'use client'
 import {Achievement, Participant} from "@/app/scrapeResults";
-import {DataWithRefreshTime, getData, getDataFromApify} from "@/app/actions";
+import {DataWithRefreshTime, getData} from "@/app/actions";
 import React, {useEffect} from "react";
-
-// export const revalidate = 10;
 
 var groupBy = function (xs: any, key: any) {
     return xs.reduce(function (rv: any, x: any) {
