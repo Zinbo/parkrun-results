@@ -1,13 +1,20 @@
 'use server'
-import {Data, getAllDetails} from "@/app/scrapeResults";
+import {Achievement, Data, RaceToDetails} from "@/app/scrapeResults";
+import {ApifyClient} from 'apify-client';
 
 let ttlDate : Date|null = null;
 let cachedData : Data|null = null;
 let refreshTime: Date = new Date();
 
 const TTL = process.env.PARKRUN_TTL_IN_SECONDS;
+const APIFY_TOKEN = process.env.PARKRUN_APIFY_TOKEN;
+if(!APIFY_TOKEN) console.error("APIFY_TOKEN env var not defined!")
 if(TTL) console.log(`Overriding TTL to ${TTL} seconds`)
 else console.log("Using default TTL of next sunday")
+
+const client = new ApifyClient({
+    token: APIFY_TOKEN,
+});
 
 export interface DataWithRefreshTime {
     data: Data
@@ -40,7 +47,7 @@ function getTtlDate() {
 
 async function refreshData() {
     console.log("Refreshing data at " + new Date());
-    cachedData = await getAllDetails();
+    cachedData = await getDataFromApify();
     ttlDate = TTL ? getTtlDate() : getNextSunday();
     console.log("Data won't be refreshed until " + ttlDate);
     refreshTime = new Date();
@@ -52,4 +59,37 @@ export async function getData(): Promise<DataWithRefreshTime> {
 
     console.log("Returning cached data at " + new Date());
     return {data: cachedData, dateRefreshedAt: refreshTime};
+}
+
+
+export async function getDataFromApify(): Promise<Data> {
+    // Run the Actor task and wait for it to finish
+    console.log("Getting data from Apify...");
+    const run = await client.task("G2kFcBcHQLmIIOv6H").call();
+
+    // Fetch and print Actor task results from the run's dataset (if any)
+    console.log('Results from dataset');
+    let achievements: Achievement[] = [];
+    let milestones: Achievement[] = [];
+    let raceToDetails: RaceToDetails = {};
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    items.forEach((item) => {
+        if(item.achievements) { // @ts-ignore
+            achievements = item.achievements;
+        }
+        if(item.milestones) { // @ts-ignore
+            milestones = item.milestones;
+        }
+        if(item.raceToDetails) { // @ts-ignore
+            raceToDetails = item.raceToDetails;
+        }
+    });
+
+    const data = {achievements, milestones, raceToDetails};
+
+    console.log("Data from Apify: ", JSON.stringify(cachedData, null, 2));
+
+    console.log("Finished getting data from Apify.");
+
+    return data;
 }

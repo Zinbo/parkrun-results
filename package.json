@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "apify-client": "^2.9.3",
     "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12",
     "next": "14.2.3",

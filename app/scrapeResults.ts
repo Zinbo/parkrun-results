@@ -27,9 +27,14 @@ export interface Achievement {
     raceNumber ?: number
 }
 
+export interface RaceToDetails {
+    [key: string]: Race
+}
+
 export interface Data {
-    raceToDetails: {[k: string]: Race};
+    raceToDetails: RaceToDetails;
     achievements: Achievement[];
+    milestones: Achievement[];
 }
 
 const MILESTONES = [25, 50, 100, 250, 500, 1000];
@@ -114,7 +119,7 @@ async function getIndividualRaceAchievements(raceToDetails: Map<string, Race>) {
 }
 
 async function getMilestones(raceToDetails: Map<string, Race>) {
-    const achievements: Achievement[] = [];
+    const milestones: Achievement[] = [];
     // @ts-ignore
     for (const [raceName, race] of raceToDetails.entries()) {
         const response = await axios.get(`https://www.parkrun.org.uk/${race.shorthandName}/results/clubhistory/?clubNum=${CLUB_NUMBER}`, {
@@ -128,14 +133,14 @@ async function getMilestones(raceToDetails: Map<string, Race>) {
             if(!race.participants.some((p : Participant) => p.name === name)) return;
             const numberParkruns = parseInt($(element).find('td:nth-child(3)').text().trim());
             const totalParkruns = parseInt($(element).find('td:nth-child(4)').text().trim());
-            if(totalParkruns == 1) achievements.push({name, race: raceName, type: 'firstEver', raceNumber: numberParkruns});
-            else if(numberParkruns == 1) achievements.push({name, race: raceName, type: 'firstTimeSpecificRace', raceNumber: numberParkruns});
-            else if(MILESTONES.includes(totalParkruns)) achievements.push({name, race: raceName, type: 'milestone', raceNumber: totalParkruns});
+            if(totalParkruns == 1) milestones.push({name, race: raceName, type: 'firstEver', raceNumber: numberParkruns});
+            else if(numberParkruns == 1) milestones.push({name, race: raceName, type: 'firstTimeSpecificRace', raceNumber: numberParkruns});
+            else if(MILESTONES.includes(totalParkruns)) milestones.push({name, race: raceName, type: 'milestone', raceNumber: totalParkruns});
         });
 
     }
 
-    return achievements;
+    return milestones;
 }
 
 const parkrunURL = `https://www.parkrun.com/results/consolidatedclub/?clubNum=${CLUB_NUMBER}`;
@@ -144,6 +149,6 @@ export async function getAllDetails(): Promise<Data> {
     const achievements: Achievement[] = [];
     let raceToDetails = await getAllRaces(parkrunURL, achievements);
     achievements.push(...(await getIndividualRaceAchievements(raceToDetails)));
-    achievements.push(...(await getMilestones(raceToDetails)));
-    return { raceToDetails: Object.fromEntries(raceToDetails), achievements };
+    const milestones = await getMilestones(raceToDetails);
+    return { raceToDetails: Object.fromEntries(raceToDetails), achievements, milestones };
 }
