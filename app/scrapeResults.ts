@@ -125,6 +125,7 @@ async function getMilestones(raceToDetails: Map<string, Race>) {
         const $ = cheerio.load(response.data);
         $('table#results tbody tr').each((index, element) => {
             const name = $(element).find('td:nth-child(1) a').text().trim();
+            if(!race.participants.some((p : Participant) => p.name === name)) return;
             const numberParkruns = parseInt($(element).find('td:nth-child(3)').text().trim());
             const totalParkruns = parseInt($(element).find('td:nth-child(4)').text().trim());
             if(totalParkruns == 1) achievements.push({name, race: raceName, type: 'firstEver', raceNumber: numberParkruns});
