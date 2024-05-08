@@ -1,13 +1,14 @@
-import express, { Request, Response } from 'express';
+import express, {Request, Response} from 'express';
 import dotenv from 'dotenv';
-import { getResult } from './apifyService';
-import { scheduleJob } from 'node-schedule';
+import {scheduleJob} from 'node-schedule';
 import cache from './cache';
-import {start} from "repl";
+import cors from 'cors';
+import helmet from 'helmet';
+
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 7000;
 
 const refreshCacheJob = async () => {
     try {
@@ -46,5 +47,8 @@ const startServer = async () => {
         process.exit(1); // Exit the process with an error code
     }
 };
+
+app.use(cors())
+app.use(helmet())
 
 startServer();

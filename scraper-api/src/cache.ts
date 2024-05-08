@@ -9,6 +9,7 @@ export default {
         cache.set('data', results, getNextSunday().getSeconds());
     },
     getResults: () => {
+        console.log("Retrieving data from cache...");
         return cache.get('data');
     }
 };

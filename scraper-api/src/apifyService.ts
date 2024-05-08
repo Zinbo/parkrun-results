@@ -1,5 +1,4 @@
-import { ApifyClient } from 'apify-client';
-import cache from './cache';
+import {ApifyClient} from 'apify-client';
 
 const client = new ApifyClient({
         token: process.env.APIFY_TOKEN,
