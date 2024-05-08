@@ -24,6 +24,15 @@ const refreshCacheJob = async () => {
 // Schedule the job to run every Sunday at midnight
 scheduleJob('0 0 * * 0', refreshCacheJob);
 
+
+const corsOptions = {
+    origin: ['http://localhost:3000', 'https://parkrun-results.vercel.app']
+}
+
+app.use(cors(corsOptions))
+app.use(helmet())
+
+
 app.get('/results', async (req: Request, res: Response) => {
     try {
         const result = cache.getResults();
@@ -47,8 +56,5 @@ const startServer = async () => {
         process.exit(1); // Exit the process with an error code
     }
 };
-
-app.use(cors())
-app.use(helmet())
 
 startServer();
