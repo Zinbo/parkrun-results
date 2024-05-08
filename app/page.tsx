@@ -16,7 +16,9 @@ export default function ResultsPage() {
 
     useEffect(() => {
         async function fetchData() {
-            setResults(await getData());
+            const response = await fetch('http://localhost:7000/results');
+            const data : DataWithRefreshTime = await response.json();
+            setResults(data);
         }
         fetchData();
     }, []);
@@ -33,7 +35,7 @@ export default function ResultsPage() {
         // @ts-ignore
         for (const [raceName, race] of raceToDetails.entries()) {
             tables.push((
-                <div style={{flex: 1}}>
+                <div style={{flex: 1}} key={raceName}>
                     <h2>{raceName}</h2>
                     <table>
                         <thead>
@@ -65,8 +67,8 @@ export default function ResultsPage() {
     }
 
     return <div>
+        <h1>Data Last Refreshed At: {new Date(results.dateRefreshedAt).toISOString()}</h1>
         <h1>Achievements</h1>
-        <h2>Data Last Refreshed At: {results.dateRefreshedAt.toISOString()}</h2>
         {
             (grouped['firstEver']?.length) &&
             (<>
@@ -155,7 +157,7 @@ export default function ResultsPage() {
             </>)
         }
         <h1>Results</h1>
-        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+        <div className={"grid-container"}>
             <Tables/>
         </div>
     </div>;
