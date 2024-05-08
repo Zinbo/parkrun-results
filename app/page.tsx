@@ -1,14 +1,19 @@
 'use client'
-import {Achievement, Participant} from "@/app/scrapeResults";
-import {DataWithRefreshTime, getData} from "@/app/actions";
+import {Achievement, Data, Participant} from "@/app/scrapeResults";
+import {getApiUrl} from "@/app/actions";
 import React, {useEffect} from "react";
 
-var groupBy = function (xs: any, key: any) {
+const groupBy = function (xs: any, key: any) {
     return xs.reduce(function (rv: any, x: any) {
         (rv[x[key]] = rv[x[key]] || []).push(x);
         return rv;
     }, {});
 };
+
+export interface DataWithRefreshTime {
+    data: Data
+    dateRefreshedAt: Date
+}
 
 export default function ResultsPage() {
 
@@ -16,7 +21,8 @@ export default function ResultsPage() {
 
     useEffect(() => {
         async function fetchData() {
-            const response = await fetch('http://localhost:7000/results');
+            const url = await getApiUrl();
+            const response = await fetch(`${url}/results`);
             const data : DataWithRefreshTime = await response.json();
             setResults(data);
         }
