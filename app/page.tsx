@@ -17,23 +17,25 @@ export interface DataWithRefreshTime {
 
 export default function ResultsPage() {
 
-    const [results, setResults] = React.useState<DataWithRefreshTime|null>(null);
+    const [results, setResults] = React.useState<DataWithRefreshTime | null>(null);
 
     useEffect(() => {
         async function fetchData() {
             const url = await getApiUrl();
             const response = await fetch(`${url}/results`);
-            const data : DataWithRefreshTime = await response.json();
+            const data: DataWithRefreshTime = await response.json();
             setResults(data);
         }
+
         fetchData();
     }, []);
-    if(!results) return <div className="loader"></div>;
+    if (!results) return <div className="loader"></div>;
     const achievements = results.data.achievements;
+    const milestones = results.data.milestones;
     const raceToDetails = new Map(Object.entries(results.data.raceToDetails));
 
-    const grouped = groupBy(achievements, 'type');
-
+    const groupedAchievements = groupBy(achievements, 'type');
+    const groupedMilestones = groupBy(milestones, 'type');
 
 
     function Tables() {
@@ -72,96 +74,46 @@ export default function ResultsPage() {
         return tables;
     }
 
+    function AchievementsList({achievements, title, achievementLine}: {
+        achievements: Achievement[],
+        title: string,
+        achievementLine: (achievement: Achievement) => string
+    }) {
+        if (!achievements) return <></>
+        return (
+            <>
+                <h2>{title}</h2>
+                <ul>
+                    {achievements.map((achievement: Achievement) => <li
+                        key={achievement.name + achievement.type}>{achievementLine(achievement)}</li>)}
+                </ul>
+            </>
+        )
+    }
+
     return <div>
         <h1>Data Last Refreshed At: {new Date(results.dateRefreshedAt).toISOString()}</h1>
         <h1>Achievements</h1>
-        {
-            (grouped['firstEver']?.length) &&
-            (<>
-                <h2>First Ever</h2>
-                <ul>
-                    {
-                        grouped['firstEver'].map((achievement: Achievement) => {
-                            return <li key={achievement.name + achievement.type}>{achievement.name} ran their
-                                first ever parkrun!</li>
-                        })
-                    }
-                </ul>
-            </>)
-        }
-        {
-            (grouped['cameFirst']?.length) &&
-            (<>
-                <h2>Came First</h2>
-                <ul>
-                    {
-                        grouped['cameFirst'].map((achievement: Achievement) => {
-                            return <li key={achievement.name + achievement.type}>{achievement.name} came
-                                first in the {achievement.race} with a time of {achievement.runTime}!</li>
-                        })
-                    }
-                </ul>
-            </>)
-        }
-
-        {
-            (grouped['cameFirstGender']?.length) &&
-            (<>
-                <h2>Came First Gender</h2>
-                <ul>
-                    {
-                        grouped['cameFirstGender'].map((achievement: Achievement) => {
-                            return <li key={achievement.name + achievement.type}>{achievement.name} came
-                                first in their gender category in the {achievement.race} with a time
-                                of {achievement.runTime}!</li>
-                        })
-                    }
-                </ul>
-            </>)
-        }
-        {
-            (grouped['milestone']?.length) &&
-            (<>
-                <h2>Milestones</h2>
-                <ul>
-                    {
-                        grouped['milestone'].map((achievement: Achievement) => {
-                            return <li key={achievement.name + achievement.type}>{achievement.name} has reached
-                                the {achievement.raceNumber} total parkruns milestone!</li>
-                        })
-                    }
-                </ul>
-            </>)
-        }
-        {
-            (grouped['pb']?.length) &&
-            (<>
-                <h2>Personal Best</h2>
-                <ul>
-                    {
-                        grouped['pb'].map((achievement: Achievement) => {
-                            return <li key={achievement.name + achievement.type}>{achievement.name} set
-                                their personal best in the {achievement.race} with a time
-                                of {achievement.runTime}!</li>
-                        })
-                    }
-                </ul>
-            </>)
-        }
-        {
-            (grouped['firstTimeSpecificRace']?.length) &&
-            (<>
-                <h2>First Time Specific Race</h2>
-                <ul>
-                    {
-                        grouped['firstTimeSpecificRace'].map((achievement: Achievement) => {
-                            return <li key={achievement.name + achievement.type}>{achievement.name} ran
-                                the {achievement.race} for the first time ever!</li>
-                        })
-                    }
-                </ul>
-            </>)
-        }
+        <AchievementsList achievements={groupedAchievements['cameFirst']} title={"Came First"}
+                          achievementLine={(achievement: Achievement) => `${achievement.name} came
+                        first in the ${achievement.race} with a time of ${achievement.runTime}`}/>
+        <AchievementsList achievements={groupedAchievements['cameFirstGender']} title={"Came First Gender"}
+                          achievementLine={(achievement: Achievement) => `${achievement.name} came
+                                first in their gender category in the ${achievement.race} with a time
+                                of ${achievement.runTime}!`}/>
+        <AchievementsList achievements={groupedAchievements['pb']} title={"Personal Best"}
+                          achievementLine={(achievement: Achievement) => `${achievement.name} set
+                                their personal best in the ${achievement.race} with a time
+                                of ${achievement.runTime}!`}/>
+        <AchievementsList achievements={groupedMilestones['milestone']} title={"Milestones"}
+                          achievementLine={(achievement: Achievement) => `${achievement.name} has reached
+                                the ${achievement.raceNumber} total parkruns milestone!`}/>
+        <AchievementsList achievements={groupedMilestones['firstEver']} title={"First Ever"}
+                          achievementLine={(achievement: Achievement) => `${achievement.name} ran their
+                                first ever parkrun!`}/>
+        <AchievementsList achievements={groupedMilestones['firstTimeSpecificRace']} title={"First Time For Race"}
+                          achievementLine={(achievement: Achievement) => `${achievement.name} ran
+                                the ${achievement.race} for the first time ever!`}/>
         <h1>Results</h1>
         <div className={"grid-container"}>
             <Tables/>
